@@ -1,3 +1,4 @@
+import React from 'react';
 import Nav from "../components/Nav"
 import AuthModal from "../components/AuthModal"
 import { useState } from 'react'

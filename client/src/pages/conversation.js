@@ -1,3 +1,4 @@
+import React from 'react';
 import Chat from "../components/chat";
 import { useState, useEffect } from "react";
 import io from "socket.io-client";

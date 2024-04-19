@@ -1,3 +1,4 @@
+import React from 'react';
 import logo from '../Images/logo7.png'
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
@@ -38,7 +39,7 @@ const Nav = ({ minimal, authToken, setShowModal, showModal, setIsSignup}, props)
 
   const names =[];
   profiles.map(profile => {
-    if (profile.user_id == sessionStorage.getItem("USER_ID")) {
+    if (profile.user_id === sessionStorage.getItem("USER_ID")) {
       names.push(profile.pet_name)
       names.push(profile.picture)
     }

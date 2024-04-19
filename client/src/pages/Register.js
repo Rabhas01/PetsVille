@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState } from "react";
 import Nav2 from "../components/Nav2";
 import axios from "axios";

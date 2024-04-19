@@ -1,14 +1,22 @@
+import React from 'react';
 import { useState, useEffect } from "react";
 import Nav from "../components/Nav";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "../Profile.css"; 
+import "../Profile.css";
 
 const Profile = () => {
-
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState([]);
-  const [edit, setEdit] = useState(false)
+  const [edit, setEdit] = useState(false);
+  const [data, setData] = useState({
+    pet_name: "",
+    species: "",
+    size: "",
+    breed: "",
+    age: "",
+    picture: "",
+  });
 
   useEffect(() => {
     const fetchProfilesResponse = async () => {
@@ -25,174 +33,149 @@ const Profile = () => {
     fetchProfilesResponse();
   }, []);
 
-  const userObj = [];
-  profiles.forEach(user => {
-    if (user.user_id == sessionStorage.getItem("USER_ID")) {
-      userObj.push(user.picture)
-      userObj.push(user.pet_name)
-      userObj.push(user.species)
-      userObj.push(user.size)
-      userObj.push(user.breed)
-      userObj.push(user.age)
+  useEffect(() => {
+    const userObj = profiles.find(user => user.user_id === sessionStorage.getItem("USER_ID"));
+    if (userObj) {
+      setData({
+        pet_name: userObj.pet_name,
+        species: userObj.species,
+        size: userObj.size,
+        breed: userObj.breed,
+        age: userObj.age,
+        picture: userObj.picture,
+      });
     }
-  })
-
-  const [data, setData] = useState({
-    pet_name: "",
-    species: "",
-    size: "",
-    breed: "",
-    age: "",
-    picture: "",
-  });
-
+  }, [profiles]);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const dataToSend = { ...data,  user_id: sessionStorage.getItem("USER_ID") };
-      axios.post("http://localhost:3002/profiles/update", dataToSend)
-      uploadimage()
+      const dataToSend = { ...data, user_id: sessionStorage.getItem("USER_ID") };
+      await axios.post("http://localhost:3002/profiles/update", dataToSend);
+      await navigate("/Home");
     } catch (error) {
       console.log(error);
     }
-    await navigate("/Home");
   };
-
 
   const onChange = (event) => {
-    setData((current) => {
-      return { ...current, [event.target.name]: event.target.value };
-    });
+    const { name, value } = event.target;
+    setData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
   };
 
-  const onEdit =(e) => {
+  const onEdit = (e) => {
     e.preventDefault();
-    if (edit) {
-      setEdit(false)
-    } else {
-      setEdit(true)
-    }
-    setData({
-      pet_name: userObj[1],
-      species: userObj[2],
-      size: userObj[3],
-      breed: userObj[4],
-      age: userObj[5],
-      picture: userObj[0],
-    })
-  }
+    setEdit(!edit);
+  };
 
-  const uploadimage = (files) => {
-    const formdata = new FormData();
-    formdata.append("file", files[0])
-    formdata.append("upload_preset", "vjuxaevv")
-    axios
-      .post("https://api.cloudinary.com/v1_1/petsville-1/image/upload", formdata).then((response) => {
-      setData((prev) => {
-        return {...prev, picture: response.data.url}
-      })
-    
-    })
-  }
+  const uploadImage = async (files) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      formData.append("upload_preset", "vjuxaevv");
+      const response = await axios.post("https://api.cloudinary.com/v1_1/petsville-1/image/upload", formData);
+      setData((prevData) => ({
+        ...prevData,
+        picture: response.data.url,
+      }));
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
       <Nav minimal={true} setShowModal={() => {}} showModal={false} />
       <div className="edit-form">
-        <form className="form-box" onSubmit={onSubmit} > 
+        <form className="form-box" onSubmit={onSubmit}>
           <section>
             <h3 className="header">{edit ? "Edit Profile" : "Profile"}</h3>
 
             {!edit && (
               <>
-              <div className="profile-display">
-                <div>
-                  <img
-                    src={userObj[0]}
-                    alt="owners dog pic"
-                    width="100px"
-                    height="100px"
-                  />
+                <div className="profile-display">
+                  <div>
+                    <img
+                      src={data.picture}
+                      alt="owners dog pic"
+                      width="100px"
+                      height="100px"
+                    />
+                  </div>
+                  <div>Name: {data.pet_name} </div>
+                  <div>Species: {data.species} </div>
+                  <div>Size: {data.size} </div>
+                  <div>Breed: {data.breed} </div>
+                  <div>Age: {data.age} </div>
+                  <button type="button" className="edit-button" onClick={onEdit}>Edit</button>
                 </div>
-                <div>Name: {userObj[1]} </div>
-                <div>Species: {userObj[2]} </div>
-                <div>Size: {userObj[3]} </div>
-                <div>Breed: {userObj[4]} </div>
-                <div>Size: {userObj[5]} </div>
-                <button type="button" className="edit-button" onClick={onEdit}>Edit</button>
-              </div>
               </>
             )}
 
-
             {edit && (
-            <><input
-              id="name"
-              type="text"
-              name="pet_name"
-              placeholder="name"
-              required={true}
-              onChange={onChange}
-              value={data.pet_name}
-            />
-            <br />
-            <select className="species" name="species" onChange={onChange} value={data.value}>
-            <option value={userObj[2]} default hidden>{userObj[2]}</option>
-              <option value="Dog">Dog</option>
-              <option value="Cat">Cat</option>
-              <option value="Hamster">Hamster</option>
-              <option value="Snake">Snake</option>
-            </select>
-            <br />
-            <select className="size" name="Size" onChange={onChange} value={data.value}>
-            <option value={userObj[3]} default hidden>{userObj[3]}</option>
-              <option value="Small">Small</option>
-              <option value="Medium">Medium</option>
-              <option value="Large">Large</option>
-            </select>
-            <br />
-            <input
-              type="text"
-              name="breed"
-              placeholder="breed"
-              required={true}
-              onChange={onChange}
-              value={data.breed}
-              
-            />
-            <br />
-            <input
-              id="age"
-              type="number"
-              name="age"
-              placeholder="age"
-              required={true}
-              onChange={onChange}
-              value={data.age}
-            />
-            <br />
-            <label for="uploads">Choose an image you want to upload:</label>
-            <input
-              type="file"
-              name="picture"
-              onChange={event => uploadimage(event.target.files)}
-            />
-            <div className="buttons">
-              <button className="update-button" onSubmit={onSubmit}>Update</button>
-              <button type="button" className="cancel-button" onClick={onEdit}>Cancel</button>
-            </div>
-            </>)}
+              <>
+                <input
+                  id="name"
+                  type="text"
+                  name="pet_name"
+                  placeholder="Name"
+                  value={data.pet_name}
+                  onChange={onChange}
+                  required
+                />
+                <br />
+                <select className="species" name="species" value={data.species} onChange={onChange}>
+                  <option value="Dog">Dog</option>
+                  <option value="Cat">Cat</option>
+                  <option value="Hamster">Hamster</option>
+                  <option value="Snake">Snake</option>
+                </select>
+                <br />
+                <select className="size" name="size" value={data.size} onChange={onChange}>
+                  <option value="Small">Small</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Large">Large</option>
+                </select>
+                <br />
+                <input
+                  type="text"
+                  name="breed"
+                  placeholder="Breed"
+                  value={data.breed}
+                  onChange={onChange}
+                  required
+                />
+                <br />
+                <input
+                  id="age"
+                  type="number"
+                  name="age"
+                  placeholder="Age"
+                  value={data.age}
+                  onChange={onChange}
+                  required
+                />
+                <br />
+                <label htmlFor="uploads">Choose an image you want to upload:</label>
+                <input
+                  type="file"
+                  name="picture"
+                  onChange={(event) => uploadImage(event.target.files)}
+                />
+                <div className="buttons">
+                  <button className="update-button" type="submit">Update</button>
+                  <button type="button" className="cancel-button" onClick={onEdit}>Cancel</button>
+                </div>
+              </>
+            )}
           </section>
-
-          
-          
         </form>
       </div>
     </>
+  );
+};
 
-  )
-
-}
-
-export default Profile
+export default Profile;

@@ -1,3 +1,4 @@
+import React from 'react';
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register"
@@ -13,7 +14,7 @@ const App = () => {
     <Route path="/Register" element={<Register/>}/>
     <Route path="/Home" element={<Home/>}/>
     <Route path="/Conversation" element={<Conversation/>}/>    
-    <Route path="/Profile"element={<Profile/>}/>
+    <Route path="/Profile" element={<Profile/>}/>
     </Routes>
     </BrowserRouter>
   );

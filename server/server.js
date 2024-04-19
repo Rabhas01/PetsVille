@@ -56,6 +56,7 @@ server.listen(PORT, () => {
   console.log(`server has started on port ${PORT}`);
 });
 
+
 //routues//
 
 app.get("/", (req, res) => {
@@ -73,3 +74,9 @@ app.use("/profiles", profiles);
 
 //user routes
 app.use("/users", users);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
